@@ -1,27 +1,43 @@
 import time
-from google.generativeai import Client
+import google.generativeai as genai
 from .config import settings
 
 class GeminiClient:
     def __init__(self):
-        self.client = Client(api_key=settings.gemini_api_key)
+        genai.configure(api_key=settings.gemini_api_key)
+        self.model = genai.GenerativeModel("gemini-2.5-flash-lite")
+
 
     def explain_pyspark(self, code: str) -> dict:
         start = time.time()
         try:
-            response = self.client.chat(
-                model="gemini-2.5-flash-lite",
-                messages=[{"role": "user", "content": f"Explain this PySpark code:\n{code}"}],
-                timeout=settings.timeout_seconds
-            )
-            explanation = response.last or "No explanation generated"
+            
+            prompt = f"Explain the following PySpark code clearly:\n\n{code}"
+
+            response = self.model.generate_content(prompt)
+            explanation = response.text
+
+            # Statistics
             latency_ms = int((time.time() - start) * 1000)
-            tokens_used = response.metadata.get("token_count", 0)
+            
+            # Extract usage stats safely
+            raw = response.to_dict()
+            usage = raw.get("usage_metadata", {})
+
+            tokens_used = usage.get("total_token_count", 0)
+            prompt_tokens = usage.get("prompt_token_count", 0)
+            completion_tokens = usage.get("candidates_token_count", 0)
+
             
             return {
                 "explanation": explanation,
                 "tokens_used": tokens_used,
+                "prompt_tokens": prompt_tokens,
+                "completion_tokens": completion_tokens,
                 "latency_ms": latency_ms
             }
         except Exception as e:
-            return {"error": str(e), "latency_ms": int((time.time() - start) * 1000)}
+            return {
+                "error": str(e), 
+                "latency_ms": int((time.time() - start) * 1000)
+                }

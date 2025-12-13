@@ -2,3 +2,6 @@ fastapi
 uvicorn
 pydantic
 google-generativeai
+pydantic-settings
+redis
+celery[redis]

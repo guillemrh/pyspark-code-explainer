@@ -1,4 +1,8 @@
 services:
+  redis:
+      image: redis:7-alpine
+      container_name: pyspark-llm-redis
+      restart: unless-stopped
   backend:
     build: ./backend
     container_name: pyspark-llm-backend
@@ -8,12 +12,22 @@ services:
       - "8050:8000"
     volumes:
       - ./backend:/app
+    depends_on:
+      - redis
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8005/health"]
-      interval: 30s
-      retries: 3
-
+      test: ["CMD-SHELL", "python -c 'import urllib.request; urllib.request.urlopen(\"http://localhost:8000/docs\")'"]
+  worker:  
+    build: ./backend 
+    container_name: pyspark-llm-worker
+    command: celery -A app.tasks.celery worker --loglevel=info --concurrency=1
+    env_file:
+      - ./backend/.env
+    volumes:
+      - ./backend:/app
+    depends_on:
+      - redis
+    restart: unless-stopped
   frontend:
     build: ./frontend
     container_name: pyspark-llm-frontend

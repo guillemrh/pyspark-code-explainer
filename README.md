@@ -20,10 +20,13 @@ This project provides a simple web UI where users can paste PySpark code and rec
 .
 ├── backend/
 │   ├── app/
-│   │   ├── main.py
-│   │   ├── llm.py
-│   │   ├── routes.py
-│   │   └── schemas.py
+│   │   ├── main.py           # orchestrates FastAPI + routes + startup events
+│   │   ├── llm.py            # GeminiClient
+│   │   ├── tasks.py          # Celery tasks for async LLM calls
+│   │   ├── routes.py         # /explain/pyspark + /status/<job_id>
+│   │   ├── schemas.py        # request & response schemas
+│   │   ├── config.py         # Settings (Pydantic)
+│   │   └── cache.py          # Redis caching helpers
 │   ├── Dockerfile
 │   ├── requirements.txt
 │   └── README.md
