@@ -6,9 +6,13 @@ class Settings(BaseSettings):
     backend_port: int = 8050  # default port for Docker network
     timeout_seconds: int = 15
     redis_url: str = "redis://redis:6379/0"
-    cache_ttl: int = 3600  # seconds
 
     class Config:
         env_file = ".env"
 
 settings = Settings()
+
+# --- Application behavior (policy) ---
+CACHE_TTL = 3600
+RATE_LIMIT = 5
+RATE_LIMIT_WINDOW = 60

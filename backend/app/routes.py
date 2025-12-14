@@ -6,47 +6,60 @@ from .cache import make_cache_key_for_code, get_result
 from .tasks import explain_code_task
 from .schemas import CodeRequest, ExplanationResponse, JobResponse
 import logging
+from fastapi import Depends
+from .rate_limit import rate_limit
+import time
+from .cache import set_result
+from .config import settings, CACHE_TTL
+
 
 router = APIRouter()
 
-@router.post("/explain/pyspark", response_model=JobResponse)
+@router.post("/explain/pyspark", response_model=JobResponse, dependencies=[Depends(rate_limit)])
 async def explain_pyspark(request: CodeRequest):
     code = request.code
     cache_key = make_cache_key_for_code(code)
+    
     # 1) Check cache
+    request_start = time.time()
     cached = get_result(cache_key)
     if cached:
-        # cached payload includes job_id & result
-        return {"job_id": cached.get("job_id", "cached"), "status": cached["status"], "cached": True}
+        logging.info("CACHE HIT for pyspark explanation")
+        request_duration_ms = int((time.time() - request_start) * 1000)
+        cache_job_id = f"cached:{cache_key}"
+        payload ={
+            "job_id": cache_job_id,
+            "status": "finished",
+            "result": cached,            # this should match ExplanationResult
+            "job_duration_ms": 0,
+            "cached": True
+        }
+        set_result(f"job:{cache_job_id}", payload, ttl=CACHE_TTL)
 
+        return {
+            "job_id": cache_job_id,
+            "status": "finished",
+            "cached": True
+        }
     # 2) Enqueue background job
     job_id = str(uuid4())
-    # start Celery task (non-blocking) - pass job_id and cache_key
     explain_code_task.apply_async(kwargs={"job_id": job_id, "code": code, "cache_key": cache_key})
-    # we return job_id to client which will poll /status/<job_id>
+    
     return {"job_id": job_id, "status": "pending", "cached": False}
-"""
-    result = llm.explain_pyspark(request.code)
-    logging.info(f"\n\nTokens used: {result['tokens_used']}, \nPrompt tokens: {result['prompt_tokens']}, \nCompletion tokens: {result['completion_tokens']}, \nLatency: {result['latency_ms']} ms\n")
 
-    if "error" in result:
-        raise HTTPException(status_code=500, detail=result["error"])
-
-    return ExplanationResponse(
-        explanation=result.get("explanation"),
-        latency_ms=result["latency_ms"],
-        tokens_used=result.get("tokens_used"),
-        propmt_tokens=result.get("prompt_tokens"),
-        completion_tokens=result.get("completion_tokens"),
-        error=None
-    )
-"""
 @router.get("/status/{job_id}", response_model=ExplanationResponse)
 async def get_status(job_id: str):
     job_key = f"job:{job_id}"
     payload = get_result(job_key)
+    
     if not payload:
-        return {"job_id": job_id, "status": "pending", "result": None}
+        return {
+            "job_id": job_id,
+            "status": "pending",
+            "result": None,
+            "job_duration_ms": None,
+            "cached": False
+        }
     return payload
 
 @router.get("/health")

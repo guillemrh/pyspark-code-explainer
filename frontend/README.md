@@ -53,10 +53,3 @@ BACKEND_URL = "http://backend:8005/explain/pyspark"
 - Python requests
 - Docker
 
----
-
-## 📈 Next Frontend Milestones
-- Syntax highlighting  
-- Line-by-line explanation mode  
-- Model selector  
-- Improved layout  

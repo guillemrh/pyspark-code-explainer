@@ -15,6 +15,11 @@ if st.button("Explain"):
         json={"code": code},
         timeout=10,
     )
+
+    if r.status_code != 200:
+        st.error(f"Request failed: {r.json().get('detail')}")
+        st.stop()
+    
     data = r.json()
     job_id = data["job_id"]
 
@@ -35,14 +40,15 @@ if st.button("Explain"):
 
                 if llm_result:
                     st.write("**Explanation:**")
-                    st.code(llm_result.get("explanation"))
+                    st.write(llm_result.get("explanation"))
                     st.write(
                         f"Tokens: {llm_result.get('tokens_used')}, "
-                        f"Duration: {j.get('duration_ms')} ms"
+                        f"Total duration: {j.get('job_duration_ms')} ms, "
+                        f"Model (Gemini) latency: {llm_result.get('latency_ms')} ms "
                     )
                 else:
                     st.error("No result returned.")
 
-                break  # 🔴 CRITICAL: stop polling
+                break 
 
             time.sleep(1)

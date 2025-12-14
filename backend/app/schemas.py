@@ -21,3 +21,5 @@ class ExplanationResponse(BaseModel):
     job_id: str
     status: str
     result: Optional[ExplanationResult] = None
+    job_duration_ms: Optional[int] = None
+    cached: bool = False
