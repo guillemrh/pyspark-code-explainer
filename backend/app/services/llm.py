@@ -1,6 +1,6 @@
 import time
 import google.generativeai as genai
-from .config import settings
+from app.config import settings
 
 class GeminiClient:
     def __init__(self):

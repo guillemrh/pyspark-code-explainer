@@ -2,15 +2,15 @@
 from fastapi import APIRouter, HTTPException, BackgroundTasks
 from pydantic import BaseModel
 from uuid import uuid4
-from .cache import make_cache_key_for_code, get_result
-from .tasks import explain_code_task
+from ..services.cache import make_cache_key_for_code, get_result
+from ..tasks import explain_code_task
 from .schemas import CodeRequest, ExplanationResponse, JobResponse
 import logging
 from fastapi import Depends
-from .rate_limit import rate_limit
+from ..rate_limit import rate_limit
 import time
-from .cache import set_result
-from .config import settings, CACHE_TTL
+from ..services.cache import set_result
+from ..config import settings, CACHE_TTL
 
 
 router = APIRouter()

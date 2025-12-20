@@ -1,5 +1,5 @@
 from fastapi import Request, HTTPException
-from .cache import redis_client
+from .services.cache import redis_client
 from .config import RATE_LIMIT, RATE_LIMIT_WINDOW
 
 def rate_limit(request: Request):

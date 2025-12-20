@@ -28,23 +28,31 @@ The system is built with scalability and observability in mind, separating **req
 .
 ├── backend/
 │   ├── app/
-│   │   ├── main.py           # FastAPI app initialization and lifecycle
-│   │   ├── routes.py         # /explain/pyspark and /status/{job_id} endpoints
-│   │   ├── tasks.py          # Celery background tasks (LLM execution)
-│   │   ├── llm.py            # Gemini LLM client abstraction
-│   │   ├── schemas.py        # Request/response Pydantic models
-│   │   ├── config.py         # Environment-based settings (Pydantic)
-│   │   ├── cache.py          # Redis cache helpers and job storage
-│   │   └── rate_limit.py     # API rate limiting logic
+│   │   ├── main.py                 # FastAPI app initialization and lifecycle
+│   │   ├── api/
+│   │   │   ├── routes.py           # /explain/pyspark and /status/{job_id} endpoints
+│   │   │   └── schemas.py          # Request/response Pydantic models
+│   │   ├── tasks.py                # Celery background tasks (LLM execution & DAG processing)
+│   │   ├── services/
+│   │   │   ├── llm_service.py      # Gemini LLM client abstraction
+│   │   │   ├── dag_service.py      # DAG building, parsing, and visualization orchestration
+│   │   │   └── cache_service.py    # Redis helpers for LLM and DAG caching
+│   │   ├── parsers/
+│   │   │   ├── ast_parser.py       # AST parsing logic (visitor pattern)
+│   │   │   └── dag_nodes.py        # DAGNode and ASTNode classes
+│   │   ├── visualizers/
+│   │   │   └── dag_visualizer.py   # Graphviz DAG rendering
+│   │   ├── config.py               # Environment-based settings (Pydantic)
+│   │   └── rate_limit.py           # API rate limiting logic
 │   ├── Dockerfile
 │   ├── requirements.txt
 │   └── README.md
 ├── frontend/
-│   ├── streamlit_app.py      # Streamlit UI
+│   ├── streamlit_app.py            # Streamlit UI
 │   ├── Dockerfile
 │   └── README.md
-├── docker-compose.yml        # Multi-service orchestration
-└── README.md                 # Project-level documentation
+├── docker-compose.yml               # Multi-service orchestration
+└── README.md                        # Project-level documentation
 ```
 
 ---
