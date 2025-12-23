@@ -3,6 +3,7 @@
 import ast
 from typing import List, Dict
 from .dag_nodes import SparkOperationNode
+from app.parsers.spark_ops import SPARK_OPS, OpType
 
 
 class PySparkASTParser(ast.NodeVisitor):
@@ -52,6 +53,9 @@ class PySparkASTParser(ast.NodeVisitor):
         for call in call_chain:
             # Generate a unique node ID for each operation
             node_id = f"{target_df}_{call['op']}_{node.lineno}"
+            
+            # Determine operation type for each call in the chain
+            op_type = SPARK_OPS.get(call["op"], OpType.TRANSFORMATION)
                     
             op_node = SparkOperationNode(
                 id=node_id,
@@ -59,6 +63,7 @@ class PySparkASTParser(ast.NodeVisitor):
                 operation=call["op"],
                 parents=call["parents"],
                 lineno=node.lineno,
+                op_type=op_type,
             )
             self.operations.append(op_node)
 

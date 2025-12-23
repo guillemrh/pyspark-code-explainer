@@ -7,7 +7,8 @@ from app.visualizers.dag_visualizer import render_dag_to_dot
 
 code = """
 df2 = df.select("a").filter("a > 5")
-df3 = df2.join(df_other, on="id").select("a")
+df3 = df2.groupBy("a").count()
+df4 = df3.join(df2, on="a", how="inner")
 """
 
 # --------------------

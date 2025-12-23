@@ -1,5 +1,6 @@
 from dataclasses import dataclass
-from typing import List
+from typing import List, Optional
+from app.parsers.spark_ops import OpType
 
 
 @dataclass
@@ -9,3 +10,4 @@ class SparkOperationNode:
     operation: str
     parents: List[str]
     lineno: int
+    op_type: Optional[OpType] = None
