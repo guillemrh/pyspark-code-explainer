@@ -3,6 +3,8 @@ import ast
 from app.parsers.ast_parser import PySparkASTParser
 from app.services.operation_dag_builder import build_operation_dag
 from app.visualizers.dag_visualizer import render_operation_dag_to_dot
+from app.services.stage_builder import assign_stages
+
 
 
 code = """
@@ -34,6 +36,20 @@ for node_id, node in dag.nodes.items():
         f"label={node.label}, "
         f"parents={node.parents}, "
         f"children={node.children}"
+    )
+
+# --------------------
+# ASSIGN STAGES
+# --------------------
+stages = assign_stages(dag)
+
+print("\n=== ASSIGNED STAGES ===")
+for node_id, node in stages.nodes.items():
+    print(
+        f"Node {node_id}: "
+        f"op={node.label}, "
+        f"stage_id={node.stage_id}, "
+        f"dependency={node.dependency_type}"
     )
 
 # --------------------

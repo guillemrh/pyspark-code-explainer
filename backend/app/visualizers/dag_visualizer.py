@@ -22,7 +22,7 @@ def render_operation_dag_to_dot(dag: OperationDAG) -> str:
         attrs = []
 
         # Label
-        attrs.append(f'label="{node.label}"')
+        attrs.append(f'label="{node.label}\\nStage {node.stage_id}"')
 
         # Actions as boxes
         if node.op_type == OpType.ACTION:
