@@ -1,8 +1,8 @@
 import ast
 
 from app.parsers.ast_parser import PySparkASTParser
-from app.services.dag_service import build_dag
-from app.visualizers.dag_visualizer import render_dag_to_dot
+from app.services.operation_dag_builder import build_operation_dag
+from app.visualizers.dag_visualizer import render_operation_dag_to_dot
 
 
 code = """
@@ -25,7 +25,7 @@ for op in parser.operations:
 # --------------------
 # DAG BUILDING
 # --------------------
-dag = build_dag(parser.operations)
+dag = build_operation_dag(parser.operations)
 
 print("\n=== DAG NODES ===")
 for node_id, node in dag.nodes.items():
@@ -39,7 +39,7 @@ for node_id, node in dag.nodes.items():
 # --------------------
 # GRAPHVIZ DOT
 # --------------------
-dot = render_dag_to_dot(dag)
+dot = render_operation_dag_to_dot(dag)
 
 print("\n=== GRAPHVIZ DOT ===")
 print(dot)

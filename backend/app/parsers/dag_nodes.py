@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from typing import List, Optional
-from app.parsers.spark_ops import OpType
+from app.parsers.spark_semantics import OpType
 
 
 @dataclass

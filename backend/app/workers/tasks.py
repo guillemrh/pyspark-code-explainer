@@ -3,10 +3,10 @@ import time
 from celery import Celery
 from celery.utils.log import get_task_logger
 
-from .config import settings, CACHE_TTL
-from .services.llm import GeminiClient
-from .services.cache import set_result
-from .services.dag_pipeline import run_dag_pipeline
+from ..config import settings, CACHE_TTL
+from ..services.llm import GeminiClient
+from ..services.cache import set_result
+from ..services.dag_pipeline import run_dag_pipeline
 
 logger = get_task_logger(__name__)
 

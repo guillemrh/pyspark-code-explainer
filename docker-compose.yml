@@ -20,7 +20,7 @@ services:
   worker:  
     build: ./backend 
     container_name: pyspark-llm-worker
-    command: celery -A app.tasks.celery worker --loglevel=info --concurrency=1
+    command: celery -A app.workers.tasks.celery worker --loglevel=info --concurrency=1
     env_file:
       - ./backend/.env
     volumes:

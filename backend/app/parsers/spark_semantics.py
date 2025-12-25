@@ -4,7 +4,17 @@ class OpType(str, Enum):
     TRANSFORMATION = "transformation"
     ACTION = "action"
 
+class DependencyType(str, Enum):
+    NARROW = "narrow"
+    WIDE = "wide"
 
+SHUFFLE_OPS = {
+    "groupBy",
+    "join",
+    "distinct",
+    "repartition",
+}
+    
 # Canonical Spark operation registry
 SPARK_OPS = {
     # Transformations

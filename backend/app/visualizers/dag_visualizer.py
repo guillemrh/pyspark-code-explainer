@@ -1,23 +1,49 @@
-from app.services.dag_service import SparkDAG
+import attrs
+from app.services.operation_dag_builder import OperationDAG
+from app.parsers.spark_semantics import OpType, DependencyType
 
-
-def render_dag_to_dot(dag: SparkDAG) -> str:
+def render_operation_dag_to_dot(dag: OperationDAG) -> str:
     """
-    Convert a SparkDAG into a Graphviz DOT representation.
+    Convert an OperationDAG into a Graphviz DOT representation.
+
+    This graph answers:
+    - What executes?
+    - In what order?
+    - Where are actions?
+    - Where are shuffles?
     """
-    lines = []
-    lines.append("digraph SparkDAG {")
-    lines.append("  rankdir=LR;")  # Left-to-right layout
+    
+    lines = [
+        "digraph SparkDAG {",
+        "  rankdir=LR;",
+    ]
 
-    # Emit nodes
-    for node_id, node in dag.nodes.items():
-        label = node.label
-        lines.append(f'  "{node_id}" [label="{label}"];')
+    for node in dag.nodes.values():
+        attrs = []
 
-    # Emit edges
-    for node_id, node in dag.nodes.items():
+        # Label
+        attrs.append(f'label="{node.label}"')
+
+        # Actions as boxes
+        if node.op_type == OpType.ACTION:
+            attrs.append("shape=box")
+            
+        if node.dependency_type == DependencyType.WIDE:
+            attrs.append("penwidth=2")
+
+        # Shuffles highlighted
+        if node.causes_shuffle:
+            attrs.append("color=red")
+            attrs.append("style=filled")
+            attrs.append("fillcolor=mistyrose")
+
+        attr_str = ", ".join(attrs)
+        lines.append(f'  "{node.id}" [{attr_str}];')
+
+    # Edges
+    for node in dag.nodes.values():
         for child_id in node.children:
-            lines.append(f'  "{node_id}" -> "{child_id}";')
+            lines.append(f'  "{node.id}" -> "{child_id}";')
 
     lines.append("}")
     return "\n".join(lines)

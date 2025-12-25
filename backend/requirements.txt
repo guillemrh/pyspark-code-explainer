@@ -6,3 +6,4 @@ pydantic-settings
 redis
 celery[redis]
 graphviz
+attrs

@@ -3,7 +3,7 @@ from fastapi import APIRouter, HTTPException, BackgroundTasks
 from pydantic import BaseModel
 from uuid import uuid4
 from ..services.cache import make_cache_key_for_code, get_result
-from ..tasks import explain_code_task
+from ..workers.tasks import explain_code_task
 from .schemas import CodeRequest, ExplanationResponse, JobResponse
 import logging
 from fastapi import Depends

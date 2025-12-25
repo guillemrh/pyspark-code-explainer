@@ -3,7 +3,7 @@
 import ast
 from typing import List, Dict
 from .dag_nodes import SparkOperationNode
-from app.parsers.spark_ops import SPARK_OPS, OpType
+from app.parsers.spark_semantics import SPARK_OPS, OpType
 
 
 class PySparkASTParser(ast.NodeVisitor):
@@ -41,21 +41,15 @@ class PySparkASTParser(ast.NodeVisitor):
         call_chain = self._extract_call_chain(node.value)
         if not call_chain:
             return
-
-        # First element of the call chain is assumed to represent the "parent dataframe"
-        parent_df = call_chain[0]["parents"]
-
-        # Dictionary is updated to record the lineage of the target_df
-        self.variable_lineage[target_df] = [parent_df]
         
         # Iterates over the extracted call chain, creating a SparkOperationNode for each operation
-        for call in call_chain:
+        for idx, call in enumerate(call_chain):
             # Generate a unique node ID for each operation
             node_id = f"{target_df}_{call['op']}_{node.lineno}"
-            
+
             # Determine operation type for each call in the chain
             op_type = SPARK_OPS.get(call["op"], OpType.TRANSFORMATION)
-                    
+
             op_node = SparkOperationNode(
                 id=node_id,
                 df_name=target_df,
@@ -64,8 +58,9 @@ class PySparkASTParser(ast.NodeVisitor):
                 lineno=node.lineno,
                 op_type=op_type,
             )
-            self.operations.append(op_node)
 
+            self.operations.append(op_node)
+            
         # It ensures that the traversal of the AST continues for any child nodes of the current node
         # Example: df2 = df1.select("col1").filter("col2 > 10") 
         # Here, filter is a child node of the select call
