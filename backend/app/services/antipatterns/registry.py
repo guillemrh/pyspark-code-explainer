@@ -1,13 +1,13 @@
 from app.services.antipatterns.rules.multiple_actions import MultipleActionsRule
-# from app.services.antipatterns.rules.early_shuffle import EarlyShuffleRule
-# from app.services.antipatterns.rules.action_without_cache import ActionWithoutCacheRule
-# from app.services.antipatterns.rules.repartition_misuse import RepartitionMisuseRule
+from app.services.antipatterns.rules.early_shuffle import EarlyShuffleRule
+from app.services.antipatterns.rules.action_without_cache import ActionWithoutCacheRule
+from app.services.antipatterns.rules.repartition_misuse import RepartitionMisuseRule
 
 RULES = [
     MultipleActionsRule(),
-    # EarlyShuffleRule(),
-    # ActionWithoutCacheRule(),
-    # RepartitionMisuseRule(),
+    EarlyShuffleRule(),
+    ActionWithoutCacheRule(),
+    RepartitionMisuseRule(),
 ]
 
 

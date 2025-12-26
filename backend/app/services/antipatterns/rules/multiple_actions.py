@@ -14,29 +14,44 @@ class MultipleActionsRule(AntiPatternRule):
             if node.op_type == OpType.ACTION
         ]
 
-        for i, a1 in enumerate(actions):
-            for a2 in actions[i + 1:]:
-                if self._share_ancestor(dag, a1.id, a2.id):
-                    findings.append(
-                        AntiPatternFinding(
-                            rule_id=self.rule_id,
-                            severity=self.severity,
-                            message="Multiple actions detected on the same lineage without caching",
-                            nodes=[a1.id, a2.id],
-                        )
+        lineage_map = {}
+
+        for action in actions:
+            root = self._lineage_root(dag, action.id)
+            lineage_map.setdefault(root, []).append(action.id)
+
+        for root, action_ids in lineage_map.items():
+            if len(action_ids) > 1:
+                findings.append(
+                    AntiPatternFinding(
+                        rule_id=self.rule_id,
+                        severity=self.severity,
+                        message=(
+                            "Multiple actions detected on the same lineage without caching"
+                        ),
+                        nodes=action_ids,
                     )
+                )
 
         return findings
 
-    def _share_ancestor(self, dag, id1, id2):
-        def ancestors(node_id):
-            seen = set()
-            stack = list(dag.nodes[node_id].parents)
-            while stack:
-                cur = stack.pop()
-                if cur not in seen:
-                    seen.add(cur)
-                    stack.extend(dag.nodes[cur].parents)
-            return seen
+    def _lineage_root(self, dag, node_id):
+        """
+        Walk upstream until we reach the first transformation
+        (or root of DAG).
+        """
+        current = node_id
 
-        return bool(ancestors(id1) & ancestors(id2))
+        while True:
+            parents = dag.nodes[current].parents
+            if not parents:
+                return current
+
+            parent_id = next(iter(parents))
+            parent = dag.nodes[parent_id]
+
+            if parent.op_type == OpType.ACTION:
+                current = parent_id
+                continue
+
+            return parent_id

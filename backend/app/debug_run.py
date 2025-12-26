@@ -8,9 +8,17 @@ from app.services.antipatterns.registry import detect_antipatterns
 
 
 code = """
-df2 = df.select("a").filter("a > 5")
-df3 = df2.groupBy("a").count().show()
-df4 = df3.join(df2, on="a", how="inner")
+df_base = df.select("user_id", "value").filter("value > 10")
+
+df_rep = df_base.repartition(200)
+
+df_grouped = df_rep.groupBy("user_id").count().show()
+
+df_grouped.show()
+df_grouped.collect()
+
+df_joined = df_grouped.join(df_base, on="user_id")
+df_joined.count()
 """
 
 # --------------------
