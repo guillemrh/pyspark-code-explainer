@@ -24,7 +24,6 @@ class GeminiClient:
             Talk about the tradeoffs if any.
             Add a paragraph at the end with suggestions to improve the code performance.
             """
-
             response = self.model.generate_content(prompt)
             explanation = response.text
 
@@ -41,6 +40,7 @@ class GeminiClient:
 
             
             return {
+                "model": self.model_name,
                 "explanation": explanation,
                 "tokens_used": tokens_used,
                 "prompt_tokens": prompt_tokens,
@@ -54,6 +54,27 @@ class GeminiClient:
                 raise LLMRateLimitError(str(e))
 
             return {
+                "model": self.model_name,
                 "error": str(e),
                 "latency_ms": int((time.time() - start) * 1000),
             }
+
+def explain_with_fallback(code: str) -> dict:
+    models = [
+        settings.gemini_model,
+        settings.gemini_fallback_model,
+    ]
+
+    last_error = None
+
+    for model in filter(None, models):
+        try:
+            client = GeminiClient(model=model)
+            return client.explain_pyspark(code)
+        except LLMRateLimitError as e:
+            last_error = e
+            continue
+
+    raise LLMRateLimitError(
+        f"All models exhausted. Last error: {last_error}"
+    )

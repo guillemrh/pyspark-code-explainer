@@ -43,12 +43,15 @@ async def explain_pyspark(request: CodeRequest):
         logging.info("CACHE HIT for pyspark explanation")
         request_duration_ms = int((time.time() - request_start) * 1000)
         cache_job_id = f"cached:{cache_key}"
+        analysis_cache_key = f"{cache_key}:analysis"
+        cached_analysis = get_result(analysis_cache_key)
+
         payload = {
             "job_id": cache_job_id,
             "status": "finished",
             "result": {
                 "llm": cached,
-                "analysis": None,
+                "analysis": cached_analysis or {},
             },
             "job_duration_ms": 0,
             "cached": True,

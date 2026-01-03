@@ -4,7 +4,7 @@ from celery import Celery
 from celery.utils.log import get_task_logger
 
 from ..config import settings, CACHE_TTL
-from ..services.llm import GeminiClient, LLMRateLimitError
+from ..services.llm import explain_with_fallback
 from ..services.cache import set_result
 from ..services.dag_pipeline import run_dag_pipeline
 
@@ -57,7 +57,9 @@ def explain_code_task(self, job_id: str, code: str, cache_key: str):
         # --- DAG / Analysis ---
         # Build DAG and generate DOT representation
         dag_result = run_dag_pipeline(code)
-        
+        analysis_cache_key = f"{cache_key}:analysis"
+        set_result(analysis_cache_key, dag_result, ttl=CACHE_TTL)
+
         update(
             "analysis_complete",
             {
@@ -67,16 +69,7 @@ def explain_code_task(self, job_id: str, code: str, cache_key: str):
         )
         
         # --- LLM ---
-        try:
-            llm_client = GeminiClient()
-            llm_result = llm_client.explain_pyspark(code)
-
-        except LLMRateLimitError as e:
-            logger.warning(f"llm_rate_limited job_id={job_id}")
-            llm_result = {
-                "error": "rate_limited",
-                "message": str(e),
-            }
+        llm_result = explain_with_fallback(code)
 
         # Cache only successful LLM outputs
         if "explanation" in llm_result:
@@ -89,7 +82,6 @@ def explain_code_task(self, job_id: str, code: str, cache_key: str):
                 "llm": llm_result,
             },
         )
-        
         
         job_duration_ms = int((time.time() - task_start) * 1000)
         
