@@ -44,7 +44,15 @@ def explain_code_task(self, job_id: str, code: str, cache_key: str):
             ttl=CACHE_TTL,
         )
         
-    logger.info(f"Task start job_id={job_id}")
+    logger.info(
+        "task_started",
+        extra={
+            "event": "task_started",
+            "job_id": job_id,
+            "component": "celery_worker",
+        },
+    )
+
     update("running")
     
     # Measure FULL job duration (queue + execution)
@@ -86,13 +94,27 @@ def explain_code_task(self, job_id: str, code: str, cache_key: str):
         job_duration_ms = int((time.time() - task_start) * 1000)
         
         logger.info(
-            f"task_finished job_id={job_id}"
-            f" duration_ms={job_duration_ms}"
+            "task_finished",
+            extra={
+                "event": "task_finished",
+                "job_id": job_id,
+                "duration_ms": job_duration_ms,
+                "component": "celery_worker",
+            },
         )
+
 
         
     except Exception as e:
-        logger.exception(f"Task failed job_id={job_id}")
+        logger.exception(
+            "task_failed",
+            extra={
+                "event": "task_failed",
+                "job_id": job_id,
+                "component": "celery_worker",
+            },
+        )
+
         update(
                 "failed",
                 {

@@ -1,7 +1,9 @@
 import time
 import google.generativeai as genai
 from app.config import settings
+import logging 
 
+logger = logging.getLogger(__name__)
 
 class LLMRateLimitError(Exception):
     """Raised when the LLM hits a rate or quota limit."""
@@ -16,6 +18,13 @@ class GeminiClient:
 
     def explain_pyspark(self, code: str) -> dict:
         start = time.time()
+        logger.info(
+            "llm_request",
+            extra={
+                "event": "llm_request",
+                "model": self.model_name,
+            },
+        )
         try:
             
             prompt = f"""
@@ -51,6 +60,13 @@ class GeminiClient:
             msg = str(e).lower()
 
             if "quota" in msg or "rate" in msg or "429" in msg:
+                logger.warning(
+                "llm_rate_limited",
+                extra={
+                    "event": "llm_rate_limited",
+                    "model": self.model_name,
+                },
+            )
                 raise LLMRateLimitError(str(e))
 
             return {

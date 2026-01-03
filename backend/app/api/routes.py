@@ -18,7 +18,14 @@ router = APIRouter()
 @router.post("/explain/pyspark", response_model=JobResponse, dependencies=[Depends(rate_limit)])
 async def explain_pyspark(request: CodeRequest):
     code = request.code
-    
+    logging.info(
+        "request_received",
+        extra={
+            "event": "request_received",
+            "endpoint": "/explain/pyspark",
+        },
+    )
+
     # 🔴 FAST FAIL: syntax validation
     try:
         ast.parse(code)
@@ -40,8 +47,15 @@ async def explain_pyspark(request: CodeRequest):
     request_start = time.time()
     cached = get_result(cache_key)
     if cached:
-        logging.info("CACHE HIT for pyspark explanation")
-        request_duration_ms = int((time.time() - request_start) * 1000)
+        logging.info(
+            "cache_hit",
+            extra={
+                "event": "cache_hit",
+                "cache_key": cache_key,
+                "endpoint": "/explain/pyspark",
+            },
+        )
+
         cache_job_id = f"cached:{cache_key}"
         analysis_cache_key = f"{cache_key}:analysis"
         cached_analysis = get_result(analysis_cache_key)
